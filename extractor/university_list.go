@@ -9,12 +9,13 @@ import (
 	"strings"
 )
 
+var id int64
+
 func extractUniversityCSV1(universityCSV1 string) ([]item.University, []item.UniversityArea) {
 	var universityList []item.University
 	var universityAreaList []item.UniversityArea
 	reader := strings.NewReader(universityCSV1)
 	scanner := bufio.NewScanner(reader)
-	id := 0
 	for scanner.Scan() {
 		s := scanner.Text()
 		if strings.HasPrefix(s, "序号") || strings.HasSuffix(s, ",,,,,") {
@@ -26,7 +27,7 @@ func extractUniversityCSV1(universityCSV1 string) ([]item.University, []item.Uni
 			ID:   id,
 			Name: name,
 		})
-		areaID := storage.QueryAreaByName(areaName)
+		areaID := storage.QueryAreaIDByName(areaName)
 		universityAreaList = append(universityAreaList, item.UniversityArea{
 			UniversityID: id,
 			AreaID:       areaID,
@@ -41,7 +42,6 @@ func extractUniversityCSV2(universityCSV2 string) ([]item.University, []item.Uni
 	var universityAreaList []item.UniversityArea
 	reader := strings.NewReader(universityCSV2)
 	scanner := bufio.NewScanner(reader)
-	id := 0
 	for scanner.Scan() {
 		s := scanner.Text()
 		if strings.HasPrefix(s, "序号") || strings.HasSuffix(s, ",,,,,") {
@@ -53,7 +53,7 @@ func extractUniversityCSV2(universityCSV2 string) ([]item.University, []item.Uni
 			ID:   id,
 			Name: name,
 		})
-		areaID := storage.QueryAreaByName(areaName)
+		areaID := storage.QueryAreaIDByName(areaName)
 		universityAreaList = append(universityAreaList, item.UniversityArea{
 			UniversityID: id,
 			AreaID:       areaID,
@@ -64,7 +64,16 @@ func extractUniversityCSV2(universityCSV2 string) ([]item.University, []item.Uni
 }
 
 func ExtractUniversityCSV(universityCSV1, universityCSV2 string) ([]item.University, []item.UniversityArea) {
+	id = 1
 	uL1, uAL1 := extractUniversityCSV1(universityCSV1)
 	uL2, uAL2 := extractUniversityCSV2(universityCSV2)
 	return append(uL1, uL2...), append(uAL1, uAL2...)
+}
+
+func UniversityMap(universityList []item.University) map[string]int64 {
+	universityMap := make(map[string]int64)
+	for _, university := range universityList {
+		universityMap[university.Name] = university.ID
+	}
+	return universityMap
 }

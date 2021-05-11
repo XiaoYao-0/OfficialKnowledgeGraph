@@ -5,6 +5,7 @@ package extractor
 import (
 	"OfficialKnowledgeGraph/item"
 	"encoding/json"
+	"strings"
 )
 
 type AreaJsonStruct []struct {
@@ -32,9 +33,10 @@ func phase(areaJson string) AreaJsonStruct {
 func extractAreaStruct(areaJsonStruct AreaJsonStruct) ([]item.Area, []item.AreaArea) {
 	var areaList []item.Area
 	var areaAreaList []item.AreaArea
-	map1 := make(map[string]int)
-	map2 := make(map[string]int)
-	id := 0
+	map1 := make(map[string]int64)
+	map2 := make(map[string]int64)
+	var id int64
+	id = 0
 	root := item.Area{
 		ID:    0,
 		Name:  "中国",
@@ -109,4 +111,19 @@ func extractAreaStruct(areaJsonStruct AreaJsonStruct) ([]item.Area, []item.AreaA
 
 func ExtractArea(areaJson string) ([]item.Area, []item.AreaArea) {
 	return extractAreaStruct(phase(areaJson))
+}
+
+func AreaMap(areaList []item.Area) map[string]int64 {
+	areaMap := make(map[string]int64)
+	delimiter := delimiter()
+	for _, area := range areaList {
+		for _, d := range delimiter {
+			if strings.HasSuffix(area.Name, d) {
+				strings.TrimSuffix(area.Name, d)
+				break
+			}
+		}
+		areaMap[area.Name] = area.ID
+	}
+	return areaMap
 }
