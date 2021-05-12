@@ -8,6 +8,8 @@ import (
 	"sync"
 )
 
+const MAX_GO = 500
+
 func QueryAreaIDByName(name string) int64 {
 	check()
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
@@ -128,8 +130,10 @@ func MInsertArea(areaList []item.Area) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	var wg sync.WaitGroup
+	ch := make(chan struct{}, MAX_GO)
 	for _, area := range areaList {
 		wg.Add(1)
+		ch <- struct{}{}
 		go func(area item.Area) {
 			defer wg.Done()
 			_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -144,6 +148,7 @@ func MInsertArea(areaList []item.Area) {
 			if err != nil {
 				fmt.Printf("area: %v, insert failed; error: %v\n", area, err)
 			}
+			<-ch
 		}(area)
 	}
 	wg.Wait()
@@ -155,8 +160,10 @@ func MInsertUniversity(universityList []item.University) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	var wg sync.WaitGroup
+	ch := make(chan struct{}, MAX_GO)
 	for _, university := range universityList {
 		wg.Add(1)
+		ch <- struct{}{}
 		go func(university item.University) {
 			defer wg.Done()
 			_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -171,6 +178,7 @@ func MInsertUniversity(universityList []item.University) {
 			if err != nil {
 				fmt.Printf("university: %v, insert failed; error: %v\n", university, err)
 			}
+			<-ch
 		}(university)
 	}
 	wg.Wait()
@@ -182,8 +190,12 @@ func MInsertOfficial(officialList []item.Official) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	var wg sync.WaitGroup
+	ch := make(chan struct{}, MAX_GO)
+
 	for _, official := range officialList {
 		wg.Add(1)
+		ch <- struct{}{}
+
 		go func(official item.Official) {
 			defer wg.Done()
 			_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -198,6 +210,7 @@ func MInsertOfficial(officialList []item.Official) {
 			if err != nil {
 				fmt.Printf("official: %v, insert failed; error: %v\n", official, err)
 			}
+			<-ch
 		}(official)
 	}
 	wg.Wait()
@@ -209,8 +222,10 @@ func MInsertPosition(positionList []item.Position) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	var wg sync.WaitGroup
+	ch := make(chan struct{}, MAX_GO)
 	for _, position := range positionList {
 		wg.Add(1)
+		ch <- struct{}{}
 		go func(position item.Position) {
 			defer wg.Done()
 			_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -225,6 +240,7 @@ func MInsertPosition(positionList []item.Position) {
 			if err != nil {
 				fmt.Printf("position: %v, insert failed; error: %v\n", position, err)
 			}
+			<-ch
 		}(position)
 	}
 	wg.Wait()
@@ -257,12 +273,24 @@ func MDeleteOfficial() int {
 		return 0
 	}
 	session.Close()
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	ch := make(chan struct{}, MAX_GO)
 	for _, id := range officialIDList {
-		if !QueryIsExistOfficialPositionByOfficialID(id) {
-			deleteOfficial(id)
-			count++
-		}
+		wg.Add(1)
+		ch <- struct{}{}
+		go func(id int64) {
+			defer wg.Done()
+			if !QueryIsExistOfficialPositionByOfficialID(id) {
+				deleteOfficial(id)
+				mutex.Lock()
+				count++
+				mutex.Unlock()
+			}
+			<-ch
+		}(id)
 	}
+	wg.Wait()
 	return count
 }
 

@@ -59,7 +59,7 @@ func extractAreaStruct(areaJsonStruct AreaJsonStruct) ([]item.Area, []item.AreaA
 	}
 	for _, i := range areaJsonStruct {
 		for _, j := range i.Children {
-			if j.Name == "市辖区" {
+			if j.Name == "市辖区" || j.Name == "市辖县" {
 				for _, k := range j.Children {
 					areaList = append(areaList, item.Area{
 						ID:    id,

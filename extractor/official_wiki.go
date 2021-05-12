@@ -13,31 +13,30 @@ import (
 	"unicode"
 )
 
-func extractOfficialList(urlList []string) []collector.WikiItem {
-	var wikiItemList []collector.WikiItem
-	var id int64
-	id = 0
-	// var wg sync.WaitGroup
-	// var mutex sync.Mutex
-	for _, url := range urlList {
-		id++
-		// wg.Add(1)
-		// defer wg.Done()
-		wikiItem := collector.CollectOfficialWiki(url, id)
-		if wikiItem.ID != 0 {
-			wikiItemList = append(wikiItemList, wikiItem)
-		}
-		// mutex.Lock()
-		// mutex.Unlock()
-	}
-	// wg.Wait()
-	return wikiItemList
-}
+//func extractOfficialList(urlList []string) []collector.WikiItem {
+//	var wikiItemList []collector.WikiItem
+//	var id int64
+//	id = 0
+//	// var wg sync.WaitGroup
+//	// var mutex sync.Mutex
+//	for _, url := range urlList {
+//		id++
+//		// wg.Add(1)
+//		// defer wg.Done()
+//		wikiItem := collector.CollectOfficialWiki(url, id)
+//		if wikiItem.ID != 0 {
+//			wikiItemList = append(wikiItemList, wikiItem)
+//		}
+//		// mutex.Lock()
+//		// mutex.Unlock()
+//	}
+//	// wg.Wait()
+//	return wikiItemList
+//}
 
 func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) ([]item.Official, []item.OfficialArea, []item.OfficialUniversity, []item.OfficialPosition, []item.Position, []item.PositionArea) {
 	var positionID int64
 	positionID = 0
-	wikiItemList := extractOfficialList(urlList)
 	dict1, dict2 := collector.CollectPositionLevel()
 	nations := []string{"汉", "满", "蒙古", "回", "藏", "维吾尔", "苗", "彝", "壮", "布依", "侗", "瑶", "白", "土家", "哈尼", "哈萨克", "傣", "黎", "傈僳", "佤", "畲", "高山", "拉祜", "水", "东乡", "纳西", "景颇", "柯尔克孜", "土", "达斡尔", "仫佬", "羌", "布朗", "撒拉", "毛南", "仡佬", "锡伯", "阿昌", "普米", "朝鲜", "塔吉克", "怒", "乌孜别克", "俄罗斯", "鄂温克", "德昂", "保安", "裕固", "京", "塔塔尔", "独龙", "鄂伦春", "赫哲", "门巴", "珞巴", "基诺"}
 	var officialList []item.Official
@@ -48,13 +47,11 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 	var positionAreaList []item.PositionArea
 	rYear, _ := regexp.Compile("(19|20)[0-9][0-9]")
 	rBirthYear, _ := regexp.Compile("19[0-9][0-9]")
-	logID := 0
-	for _, wikiItem := range wikiItemList {
-		logID++
-		if logID%100 == 0 {
-			fmt.Println("ExtractOfficial:", 100*float64(logID)/float64(len(wikiItemList)), "%100")
+	for id, url := range urlList {
+		if id%100 == 0 {
+			fmt.Println("ExtractOfficial:", 100*float64(id)/float64(len(urlList)), "%100")
 		}
-		// wg.Add(1)
+		wikiItem := collector.CollectOfficialWiki(url, int64(id))
 		if wikiItem.ID == 0 {
 			continue
 		}
@@ -191,8 +188,10 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 			}
 			position, positionAreas := extractPosition(positionName, positionID, dict1, dict2, areaMap)
 			officialPositionList = append(officialPositionList, officialPosition)
-			positionList = append(positionList, position)
-			positionAreaList = append(positionAreaList, positionAreas...)
+			if position.Level >= 0 && position.Level <= 9 {
+				positionList = append(positionList, position)
+				positionAreaList = append(positionAreaList, positionAreas...)
+			}
 		}
 		officialList = append(officialList, official)
 		officialAreaList = append(officialAreaList, officialArea)

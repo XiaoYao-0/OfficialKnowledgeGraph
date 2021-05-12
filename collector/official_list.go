@@ -79,7 +79,7 @@ func CollectOfficialURLList(filepath string) []string {
 		logID++
 		if logID%100 == 0 {
 			fmt.Printf("%s %d%100", filepath, int(100*float64(logID)/float64(COUNT_OFFICIAL)))
-			fmt.Printf("\n")
+			fmt.Println("")
 		}
 		s := scanner.Text()
 		name := strings.Split(s, ",")[5]

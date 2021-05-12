@@ -56,13 +56,13 @@ func collectPositionLevel2() map[string]int {
 	}
 	reader := strings.NewReader(string(bytes))
 	scanner := bufio.NewScanner(reader)
-	level := 1
+	level := -1
 	for scanner.Scan() {
 		s := scanner.Text()
 		switch {
 		case strings.HasPrefix(s, "#"):
 			{
-				level--
+				level++
 			}
 		default:
 			split := strings.Split(s, "、")
