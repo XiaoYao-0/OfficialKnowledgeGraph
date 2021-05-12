@@ -62,13 +62,13 @@ func CollectOfficialWiki(url string, id int64) WikiItem {
 	list = htmlquery.Find(doc, "//div[@class='para-title level-2']")
 	index := -1
 	for i, n := range list {
-		if strings.Contains(htmlquery.InnerText(n), "履历") || strings.Contains(htmlquery.InnerText(n), "人物") {
+		if strings.Contains(htmlquery.InnerText(n), "生平") || strings.Contains(htmlquery.InnerText(n), "经历") || strings.Contains(htmlquery.InnerText(n), "履历") || strings.Contains(htmlquery.InnerText(n), "人物") {
 			index = i
 			break
 		}
 	}
 	if index == -1 {
-		fmt.Println("！！！CollectOfficialWiki url: ", url, "error")
+		// fmt.Println("！！！CollectOfficialWiki url: ", url, "error")
 		return WikiItem{}
 	}
 	list = htmlquery.Find(doc, "//div[@class='para-title level-2']/h2[text()='人物履历']/parent::div/following-sibling::div[count(.|//div[@class='para-title level-2']/h2[text()='人物履历']/parent::div/following-sibling::div[@class='para-title level-2' and 1]/preceding-sibling::div) = count(//div[@class='para-title level-2']/h2[text()='人物履历']/parent::div/following-sibling::div[@class='para-title level-2' and 1]/preceding-sibling::div)]")

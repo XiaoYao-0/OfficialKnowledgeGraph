@@ -92,7 +92,6 @@ func officialPositionWork() {
 
 	count := storage.MDeleteOfficial()
 	fmt.Printf("officialPositionWork: MDeleteOfficial(), %d Officials\n", count)
-
 }
 
 // 执行整条流水线

@@ -52,7 +52,7 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 	for _, wikiItem := range wikiItemList {
 		logID++
 		if logID%100 == 0 {
-			fmt.Println(100*float64(logID)/float64(len(wikiItemList)), "%100")
+			fmt.Println("ExtractOfficial:", 100*float64(logID)/float64(len(wikiItemList)), "%100")
 		}
 		// wg.Add(1)
 		if wikiItem.ID == 0 {
@@ -120,14 +120,14 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 		}
 		text1 := htmlquery.InnerText(wikiItem.Text1)
 		if official.Nationality == "" {
-			var indexes []int
-			for _, n := range nations {
+			indexes := make([]int, 56)
+			for j, n := range nations {
 				if i := strings.Index(text1, n); i != -1 {
-					indexes = append(indexes, i)
+					indexes[j] = i
 				}
 			}
 			if len(indexes) != 0 {
-				official.Nationality = nations[min(indexes)] + "族"
+				official.Nationality = nations[minIndex(indexes)] + "族"
 			}
 		}
 		if official.BirthYear == 0 {
@@ -357,12 +357,14 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 	return officialList, officialAreaList, officialUniversityList, officialPositionList, positionList, positionAreaList
 }
 
-func min(arr []int) int {
+func minIndex(arr []int) int {
 	min := arr[0]
+	res := 0
 	for i := 1; i < len(arr); i++ {
 		if arr[i] < min {
 			min = arr[i]
+			res = i
 		}
 	}
-	return min
+	return res
 }

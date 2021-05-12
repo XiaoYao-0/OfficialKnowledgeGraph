@@ -268,7 +268,7 @@ func MDeleteOfficial() int {
 
 func deleteOfficial(id int64) {
 	check()
-	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	_, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, e error) {
 		_, err := tx.Run(

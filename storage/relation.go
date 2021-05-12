@@ -193,6 +193,7 @@ func QueryIsExistOfficialPositionByOfficialID(id int64) bool {
 	if err != nil {
 		return false
 	}
+	fmt.Println(levels)
 	for _, level := range levels {
 		if level < 10 && level >= 0 {
 			return true

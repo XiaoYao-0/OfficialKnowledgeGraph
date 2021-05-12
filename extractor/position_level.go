@@ -14,8 +14,9 @@ func delimiter() []string {
 
 func extractPosition(name string, id int64, dict1 map[string]int, dict2 map[string]int, areaMap map[string]int64) (item.Position, []item.PositionArea) {
 	position := item.Position{
-		ID:   id,
-		Name: name,
+		ID:    id,
+		Name:  name,
+		Level: -1,
 	}
 	var positionAreaList []item.PositionArea
 	length := len(name)

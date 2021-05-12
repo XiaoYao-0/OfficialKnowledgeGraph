@@ -1,8 +1,6 @@
 package main
 
-import (
-	"OfficialKnowledgeGraph/workflow"
-)
+import "OfficialKnowledgeGraph/workflow"
 
 func main() {
 	workflow.WorkStart()
