@@ -5,6 +5,7 @@ import (
 	"OfficialKnowledgeGraph/extractor"
 	"OfficialKnowledgeGraph/storage"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -49,7 +50,23 @@ func universityWork() {
 
 // 批量写入Official实体Position实体和OfficialArea关系和OfficialPosition关系和PositionArea关系和OfficialUniversity关系
 func officialPositionWork() {
-	urlList := collector.CollectOfficialURLList()
+	var urlList []string
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	files := collector.SplitFile()
+	fmt.Println("officialPositionWork: SplitFile()")
+	for _, file := range files {
+		wg.Add(1)
+		go func(file string) {
+			defer wg.Done()
+			urlList0 := collector.CollectOfficialURLList(file)
+			mutex.Lock()
+			urlList = append(urlList, urlList0...)
+			mutex.Unlock()
+			fmt.Printf("%v done\n", file)
+		}(file)
+	}
+	wg.Wait()
 	fmt.Printf("officialPositionWork: CollectOfficialURLList(), %d urls\n", len(urlList))
 
 	officialList, officialAreaList, officialUniversityList, officialPositionList, positionList, positionAreaList := extractor.ExtractOfficial(urlList, areaMap, universityMap)
@@ -64,14 +81,18 @@ func officialPositionWork() {
 	storage.MInsertOfficialUniversity(officialUniversityList)
 	fmt.Printf("officialPositionWork: MInsertOfficialUniversity(), %d OfficialUniversitys\n", len(officialUniversityList))
 
-	storage.MInsertOfficialPosition(officialPositionList)
-	fmt.Printf("officialPositionWork: MInsertOfficialPosition(), %d OfficialPositions\n", len(officialPositionList))
-
 	storage.MInsertPosition(positionList)
 	fmt.Printf("officialPositionWork: MInsertPosition(), %d Positions\n", len(positionList))
 
+	storage.MInsertOfficialPosition(officialPositionList)
+	fmt.Printf("officialPositionWork: MInsertOfficialPosition(), %d OfficialPositions\n", len(officialPositionList))
+
 	storage.MInsertPositionArea(positionAreaList)
 	fmt.Printf("officialPositionWork: MInsertPositionArea(), %d PositionAreas\n", len(positionAreaList))
+
+	count := storage.MDeleteOfficial()
+	fmt.Printf("officialPositionWork: MDeleteOfficial(), %d Officials\n", count)
+
 }
 
 // 执行整条流水线
@@ -90,10 +111,10 @@ func WorkStart() {
 	t3 := time.Now()
 	fmt.Printf("universityWork end, consumed %d ms\n", t3.Sub(t2).Milliseconds())
 	fmt.Println("officialPositionWork start")
+
 	officialPositionWork()
 	t4 := time.Now()
 	fmt.Printf("officialPositionWork end, consumed %d ms\n", t4.Sub(t3).Milliseconds())
 
 	fmt.Printf("Successful, consumed %d ms\n", t4.Sub(t0).Milliseconds())
-
 }

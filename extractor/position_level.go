@@ -5,7 +5,6 @@ package extractor
 import (
 	"OfficialKnowledgeGraph/item"
 	"OfficialKnowledgeGraph/storage"
-	"fmt"
 	"strings"
 )
 
@@ -30,10 +29,6 @@ func extractPosition(name string, id int64, dict1 map[string]int, dict2 map[stri
 			})
 		}
 	}
-	if len(positionAreaList) == 0 {
-		fmt.Println("ExtractPosition error, name:", name)
-		return position, positionAreaList
-	}
 	levelSum := 0
 	levelCount := 0
 	for k, v := range dict1 {
@@ -44,7 +39,7 @@ func extractPosition(name string, id int64, dict1 map[string]int, dict2 map[stri
 	}
 	for k, v := range dict2 {
 		if i := strings.Index(name, k); i != -1 {
-			for j := i; i >= 0; j-- {
+			for j := i; j >= 0; j-- {
 				if al := areaLevelIndexes[j]; al != 0 {
 					levelSum += v + al*2
 					break
@@ -54,6 +49,18 @@ func extractPosition(name string, id int64, dict1 map[string]int, dict2 map[stri
 			levelCount++
 		}
 	}
-	position.Level = levelSum / levelCount
+	if levelCount == 0 {
+		if len(positionAreaList) == 0 {
+			// fmt.Println("ExtractPosition error, name:", name)
+			return position, positionAreaList
+		}
+		positionAreaList = append(positionAreaList, item.PositionArea{
+			PositionID: id,
+			AreaID:     0,
+		})
+		position.Level = 10
+	} else {
+		position.Level = levelSum / levelCount
+	}
 	return position, positionAreaList
 }

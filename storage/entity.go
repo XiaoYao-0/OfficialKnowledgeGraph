@@ -51,7 +51,7 @@ func QueryAreaLevelByName(name string) int {
 		fmt.Printf("area.name: %v, query failed; error: %v\n", name, err)
 		return -1
 	}
-	return level.(int)
+	return int(level.(int64))
 }
 
 func QueryAreaLevelByID(id int64) int {
@@ -74,7 +74,7 @@ func QueryAreaLevelByID(id int64) int {
 		fmt.Printf("area.id: %v, query failed; error: %v\n", id, err)
 		return -1
 	}
-	return level.(int)
+	return int(level.(int64))
 }
 
 func QueryPositionIDByName(name string) int64 {
@@ -228,5 +228,60 @@ func MInsertPosition(positionList []item.Position) {
 		}(position)
 	}
 	wg.Wait()
+	return
+}
+
+func MDeleteOfficial() int {
+	var officialIDList []int64
+	count := 0
+	check()
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close()
+	_, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		result, err := tx.Run(
+			"MATCH (o:Official) RETURN o.id",
+			map[string]interface{}{})
+		if err != nil {
+			return nil, err
+		}
+		for result.Next() {
+			officialIDList = append(officialIDList, result.Record().Values[0].(int64))
+		}
+		if err = result.Err(); err != nil {
+			return nil, err
+		}
+
+		return officialIDList, result.Err()
+	})
+	if err != nil {
+		fmt.Printf("official delete failed; error: %v\n", err)
+		return 0
+	}
+	for _, id := range officialIDList {
+		if !QueryIsExistOfficialPositionByOfficialID(id) {
+			deleteOfficial(id)
+			count++
+		}
+	}
+	return count
+}
+
+func deleteOfficial(id int64) {
+	check()
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close()
+	_, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, e error) {
+		_, err := tx.Run(
+			"MATCH (o:official) WHERE o.id = $oid DELETE o",
+			map[string]interface{}{"oid": id})
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	if err != nil {
+		fmt.Printf("official.id: %d delete failed; error: %v\n", id, err)
+		return
+	}
 	return
 }

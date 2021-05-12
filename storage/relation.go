@@ -2,6 +2,7 @@ package storage
 
 import (
 	"OfficialKnowledgeGraph/item"
+	"errors"
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"sync"
@@ -126,8 +127,8 @@ func MInsertOfficialPosition(officialPositionList []item.OfficialPosition) {
 			defer wg.Done()
 			_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 				_, err := transaction.Run(
-					"MATCH (o:Official),(p:Position) WHERE o.id = $oid and p.id = $pid CREATE (o)-[office:Office]->(p)",
-					map[string]interface{}{"oid": officialPosition.OfficialID, "rid": officialPosition.PositionID})
+					"MATCH (o:Official),(p:Position) WHERE o.id = $oid and p.id = $pid CREATE (o)-[office:Office{start_year:$start_year,end_year:$end_year}]->(p)",
+					map[string]interface{}{"oid": officialPosition.OfficialID, "pid": officialPosition.PositionID, "start_year": officialPosition.StartYear, "end_year": officialPosition.EndYear})
 				if err != nil {
 					return nil, err
 				}
@@ -167,4 +168,35 @@ func MInsertOfficialUniversity(officialUniversityList []item.OfficialUniversity)
 	}
 	wg.Wait()
 	return
+}
+
+func QueryIsExistOfficialPositionByOfficialID(id int64) bool {
+	check()
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close()
+	var levels []int64
+	_, err := session.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, e error) {
+		result, err := tx.Run(
+			"MATCH (o:Official)-[:Office]-(p:Position) WHERE o.id = $oid RETURN p.level",
+			map[string]interface{}{"oid": id})
+		if err != nil {
+			return nil, err
+		}
+		for result.Next() {
+			levels = append(levels, result.Record().Values[0].(int64))
+		}
+		if err = result.Err(); err != nil {
+			return nil, err
+		}
+		return nil, errors.New("no result")
+	})
+	if err != nil {
+		return false
+	}
+	for _, level := range levels {
+		if level < 10 && level >= 0 {
+			return true
+		}
+	}
+	return false
 }
