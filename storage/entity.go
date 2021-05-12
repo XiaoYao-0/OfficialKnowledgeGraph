@@ -236,7 +236,6 @@ func MDeleteOfficial() int {
 	count := 0
 	check()
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close()
 	_, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		result, err := tx.Run(
 			"MATCH (o:Official) RETURN o.id",
@@ -257,6 +256,7 @@ func MDeleteOfficial() int {
 		fmt.Printf("official delete failed; error: %v\n", err)
 		return 0
 	}
+	session.Close()
 	for _, id := range officialIDList {
 		if !QueryIsExistOfficialPositionByOfficialID(id) {
 			deleteOfficial(id)
@@ -272,7 +272,7 @@ func deleteOfficial(id int64) {
 	defer session.Close()
 	_, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, e error) {
 		_, err := tx.Run(
-			"MATCH (o:official) WHERE o.id = $oid DELETE o",
+			"MATCH (o:Official) WHERE o.id = $oid DETACH DELETE o",
 			map[string]interface{}{"oid": id})
 		if err != nil {
 			return nil, err

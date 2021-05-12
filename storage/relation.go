@@ -2,7 +2,6 @@ package storage
 
 import (
 	"OfficialKnowledgeGraph/item"
-	"errors"
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"sync"
@@ -177,7 +176,7 @@ func QueryIsExistOfficialPositionByOfficialID(id int64) bool {
 	var levels []int64
 	_, err := session.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, e error) {
 		result, err := tx.Run(
-			"MATCH (o:Official)-[:Office]-(p:Position) WHERE o.id = $oid RETURN p.level",
+			"MATCH (o:Official)-[:Office]->(p:Position) WHERE o.id = $oid RETURN p.level",
 			map[string]interface{}{"oid": id})
 		if err != nil {
 			return nil, err
@@ -188,12 +187,11 @@ func QueryIsExistOfficialPositionByOfficialID(id int64) bool {
 		if err = result.Err(); err != nil {
 			return nil, err
 		}
-		return nil, errors.New("no result")
+		return nil, nil
 	})
 	if err != nil {
 		return false
 	}
-	fmt.Println(levels)
 	for _, level := range levels {
 		if level < 10 && level >= 0 {
 			return true
