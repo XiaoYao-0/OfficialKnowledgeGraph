@@ -6,6 +6,8 @@ https://github.com/XiaoYao-0/OfficialKnowledgeGraph
 
 ## 知识图谱设计
 
+![schema](README.assets/schema.png)
+
 ### 实体设计
 
 ```go
@@ -158,6 +160,22 @@ OfficialKnowledgeGraph/
 
 ## 最终效果
 
-部分官员关系图
+### 部分官员关系图
 
-![image-20210512232147936](README.assets/show_results.png)
+![show_results](README.assets/show_results.png)
+
+### 实体总数
+
+- University: 3005
+- Area: 3453
+- Official: 18777
+- Position: 119332
+
+### 关系总数
+
+- UniversityArea: 3005
+- AreaArea: 3452
+- OfficialUniversity: 2758
+- OfficialArea: 18777
+- OfficialPosition: 119332
+- PositionArea: 146581
