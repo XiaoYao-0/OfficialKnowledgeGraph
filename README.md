@@ -116,7 +116,9 @@ type PositionArea struct {
    }
    ```
 
-3. 直接 run main.go，约耗时 2 h
+3. 直接 run main.go，约耗时 2.5 h
+
+4. 可以减少 official-list.csv中的数据数量来进行测试
 
 ## 架构图
 
