@@ -122,7 +122,7 @@ type PositionArea struct {
 
 ## 架构图
 
-![架构图](/Users/bytedance/Downloads/架构图.png)
+![架构图](README.assets/架构图.png)
 
 ## 代码目录
 
