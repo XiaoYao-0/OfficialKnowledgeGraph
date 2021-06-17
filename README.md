@@ -1,5 +1,9 @@
 # 中国官员知识图谱
 
+## 变更日志
+
+- 6.17 爬取结果以neo4j数据库中的一个数据库dump的形式上传 ![download](neo4j.dump)
+
 ## 代码仓库
 
 https://github.com/XiaoYao-0/OfficialKnowledgeGraph
