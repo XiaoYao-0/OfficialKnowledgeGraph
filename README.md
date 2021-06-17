@@ -2,7 +2,7 @@
 
 ## 变更日志
 
-- 6.17 爬取结果以neo4j数据库中的一个数据库dump的形式上传 ![download](neo4j.dump)
+- 6.17 爬取结果以neo4j数据库中的一个数据库dump的形式上传 [Download](neo4j.dump)
 
 ## 代码仓库
 
