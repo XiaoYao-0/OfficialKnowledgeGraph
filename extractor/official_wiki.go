@@ -7,6 +7,7 @@ import (
 	"OfficialKnowledgeGraph/item"
 	"fmt"
 	"github.com/antchfx/htmlquery"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -51,7 +52,7 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 		if id%100 == 0 {
 			fmt.Println("ExtractOfficial:", 100*float64(id)/float64(len(urlList)), "%100")
 		}
-		wikiItem := collector.CollectOfficialWiki(url, int64(id))
+		wikiItem := collector.CollectOfficialWiki(url, int64(id+1))
 		if wikiItem.ID == 0 {
 			continue
 		}
@@ -90,8 +91,9 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 		list2 := htmlquery.Find(wikiItem.Text2, "//dd[@class='basicInfo-item value']")
 		for i := 0; i < len(list1); i++ {
 			k, v := htmlquery.InnerText(list1[i]), htmlquery.InnerText(list2[i])
-			if strings.Contains(k, "民族") {
-				official.Nationality = v
+			if strings.Contains(k, "民") && strings.Contains(k, "族") {
+				official.Nationality = strings.ReplaceAll(v, " ", "")
+				official.Nationality = strings.ReplaceAll(v, "\n", "")
 			}
 			if strings.Contains(k, "出生日期") {
 				if rBirthYear.FindString(v) != "" {
@@ -118,6 +120,9 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 		text1 := htmlquery.InnerText(wikiItem.Text1)
 		if official.Nationality == "" {
 			indexes := make([]int, 56)
+			for i := 0; i < len(indexes); i++ {
+				indexes[i] = math.MaxInt64
+			}
 			for j, n := range nations {
 				if i := strings.Index(text1, n); i != -1 {
 					indexes[j] = i
@@ -359,7 +364,7 @@ func ExtractOfficial(urlList []string, areaMap, universityMap map[string]int64) 
 func minIndex(arr []int) int {
 	min := arr[0]
 	res := 0
-	for i := 1; i < len(arr); i++ {
+	for i := 0; i < len(arr); i++ {
 		if arr[i] < min {
 			min = arr[i]
 			res = i
